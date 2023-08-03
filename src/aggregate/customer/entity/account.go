@@ -1,9 +1,30 @@
 package customer
 
+import "github.com/go-playground/validator/v10"
+
+type AccountType interface {
+	account | SavingsAccount | CheckingAccount
+}
+
+func Validate[T AccountType](accountType *T) error {
+	return validator.New().Struct(accountType)
+}
+
 type account struct {
-	AccountNumber    string  `json:"account_number"`
-	TotalBalance     float64 `json:"total_balance"`
-	AvaliableBalance float64 `json:"avaliable_balance"`
+	AccountNumber    string  `json:"account_number" validate:"required"`
+	TotalBalance     float64 `json:"total_balance" validate:"required,number"`
+	AvaliableBalance float64 `json:"avaliable_balance" validate:"required,number"`
+}
+
+func NewAccount(accountNumber string, totalBalance, avaliableBalance float64) *account {
+	newAccount := new(account)
+	newAccount.AccountNumber = accountNumber
+	newAccount.TotalBalance = totalBalance
+	newAccount.AvaliableBalance = avaliableBalance
+	if err := Validate[account](newAccount); err != nil {
+		return nil
+	}
+	return newAccount
 }
 
 type SavingsAccount struct {
@@ -12,14 +33,15 @@ type SavingsAccount struct {
 }
 
 func NewSavingAccount(accountNumber string, totalBalance, avaliableBalance, withdrawLimit float64) *SavingsAccount {
-	return &SavingsAccount{
-		account: account{
-			AccountNumber:    accountNumber,
-			TotalBalance:     totalBalance,
-			AvaliableBalance: avaliableBalance,
-		},
-		WithdrawLimit: withdrawLimit,
+	savingsAccount := new(SavingsAccount)
+	savingsAccount.AccountNumber = accountNumber
+	savingsAccount.TotalBalance = totalBalance
+	savingsAccount.AvaliableBalance = avaliableBalance
+	savingsAccount.WithdrawLimit = withdrawLimit
+	if err := Validate[SavingsAccount](savingsAccount); err != nil {
+		return nil
 	}
+	return savingsAccount
 }
 
 type CheckingAccount struct {
@@ -28,12 +50,13 @@ type CheckingAccount struct {
 }
 
 func NewCheckingAccount(accountNumber string, totalBalance, avaliableBalance float64, debitCardNumber string) *CheckingAccount {
-	return &CheckingAccount{
-		account: account{
-			AccountNumber:    accountNumber,
-			TotalBalance:     totalBalance,
-			AvaliableBalance: avaliableBalance,
-		},
-		DebitCardNumber: debitCardNumber,
+	checkingAccount := new(CheckingAccount)
+	checkingAccount.AccountNumber = accountNumber
+	checkingAccount.TotalBalance = totalBalance
+	checkingAccount.AvaliableBalance = avaliableBalance
+	checkingAccount.DebitCardNumber = debitCardNumber
+	if err := Validate[CheckingAccount](checkingAccount); err != nil {
+		return nil
 	}
+	return checkingAccount
 }

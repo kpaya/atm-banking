@@ -1,5 +1,10 @@
 package customer
 
+import (
+	"github.com/go-playground/validator/v10"
+	valueObject "github.com/kpaya/atm-banking/src/aggregate/value-object"
+)
+
 type CustomerStatus string
 
 const (
@@ -13,20 +18,27 @@ const (
 )
 
 type Customer struct {
-	Name   string         `json:"name"`
-	Email  string         `json:"email"`
-	Phone  string         `json:"phone"`
-	Status CustomerStatus `json:"status"`
+	Name    string              `json:"name"`
+	Email   string              `json:"email"`
+	Phone   string              `json:"phone"`
+	Status  CustomerStatus      `json:"status"`
+	Address valueObject.Address `json:"address"`
 	// Card Card
 	// Account BankingAccount
-	// Address Address
 }
 
 func NewCustomer(name, email, phone string) *Customer {
-	return &Customer{
-		Name:   name,
-		Email:  email,
-		Phone:  phone,
-		Status: ACTIVE,
+	customer := new(Customer)
+	customer.Name = name
+	customer.Email = email
+	customer.Phone = phone
+	customer.Status = ACTIVE
+	if err := customer.Validate(); err != nil {
+		return nil
 	}
+	return customer
+}
+
+func (c *Customer) Validate() error {
+	return validator.New().Struct(c)
 }

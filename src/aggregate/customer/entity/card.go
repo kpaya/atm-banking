@@ -1,5 +1,7 @@
 package customer
 
+import "github.com/go-playground/validator/v10"
+
 type Card struct {
 	Number          string `json:"number"`
 	CustomerName    string `json:"customer_name"`
@@ -9,11 +11,18 @@ type Card struct {
 }
 
 func NewCard(number, customerName string, expirationMonth, expirationYear, cvv int) *Card {
-	return &Card{
-		Number:          number,
-		CustomerName:    customerName,
-		ExpirationMonth: expirationMonth,
-		ExpirationYear:  expirationYear,
-		CVV:             cvv,
+	card := new(Card)
+	card.Number = number
+	card.CustomerName = customerName
+	card.ExpirationMonth = expirationMonth
+	card.ExpirationYear = expirationYear
+	card.CVV = cvv
+	if err := card.Validate(); err != nil {
+		return nil
 	}
+	return card
+}
+
+func (c *Card) Validate() error {
+	return validator.New().Struct(c)
 }
