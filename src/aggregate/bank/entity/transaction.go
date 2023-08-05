@@ -4,13 +4,10 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type TransactionStatus string
-
-type TransactionType interface {
-	Transaction | Withdrawal | Deposit | CheckDeposit | CashDeposit | BalanceInquiry | Transfer
-}
 
 const (
 	SUCCESS TransactionStatus = "Success"
@@ -21,10 +18,6 @@ const (
 	NONE    TransactionStatus = "None"
 )
 
-func Validate[T TransactionType](transactionType *T) error {
-	return validator.New().Struct(transactionType)
-}
-
 type Transaction struct {
 	ID        string            `json:"id" validate:"required"`
 	Status    TransactionStatus `json:"status" validate:"required"`
@@ -33,10 +26,14 @@ type Transaction struct {
 
 func NewTransaction(id string, status TransactionStatus, createdAt time.Time) *Transaction {
 	transaction := new(Transaction)
-	transaction.ID = id
+	if id == "" {
+		transaction.ID = uuid.NewString()
+	} else {
+		transaction.ID = id
+	}
 	transaction.Status = status
 	transaction.CreatedAt = createdAt
-	if err := Validate[Transaction](transaction); err != nil {
+	if err := validator.New().Struct(transaction); err != nil {
 		return nil
 	}
 	return transaction
@@ -51,54 +48,54 @@ func NewWithdrawal(transaction Transaction, amount float64) *Withdrawal {
 	withdrawal := new(Withdrawal)
 	withdrawal.Transaction = transaction
 	withdrawal.Amount = amount
-	if err := Validate[Withdrawal](withdrawal); err != nil {
+	if err := validator.New().Struct(withdrawal); err != nil {
 		return nil
 	}
 	return withdrawal
 }
 
-type Deposit struct {
+type deposit struct {
 	Transaction
 	Amount float64 `json:"amount" validate:"required,number,gt=0"`
 }
 
-func NewDeposit(transaction Transaction, amount float64) *Deposit {
-	deposit := new(Deposit)
-	deposit.Transaction = transaction
-	deposit.Amount = amount
-	if err := Validate[Deposit](deposit); err != nil {
+func NewDeposit(transaction Transaction, amount float64) *deposit {
+	newDeposit := new(deposit)
+	newDeposit.Transaction = transaction
+	newDeposit.Amount = amount
+	if err := validator.New().Struct(newDeposit); err != nil {
 		return nil
 	}
-	return deposit
+	return newDeposit
 }
 
 type CheckDeposit struct {
-	Deposit
+	deposit
 	CheckNumber string `json:"check_number" validate:"required"`
 	BankCode    string `json:"bank_code" validate:"required"`
 }
 
-func NewCheckDeposit(checkNumber, bankCode string, deposit Deposit) *CheckDeposit {
+func NewCheckDeposit(checkNumber, bankCode string, deposit deposit) *CheckDeposit {
 	checkDeposit := new(CheckDeposit)
-	checkDeposit.Deposit = deposit
+	checkDeposit.deposit = deposit
 	checkDeposit.CheckNumber = checkNumber
 	checkDeposit.BankCode = bankCode
-	if err := Validate[CheckDeposit](checkDeposit); err != nil {
+	if err := validator.New().Struct(checkDeposit); err != nil {
 		return nil
 	}
 	return checkDeposit
 }
 
 type CashDeposit struct {
-	Deposit
+	deposit
 	CashDepositLimit float64 `json:"cash_deposit_limit" validate:"required,number,gte=0"`
 }
 
-func NewCashDeposit(cashDepositLimit float64, deposit Deposit) *CashDeposit {
+func NewCashDeposit(cashDepositLimit float64, deposit deposit) *CashDeposit {
 	cashDeposit := new(CashDeposit)
-	cashDeposit.Deposit = deposit
+	cashDeposit.deposit = deposit
 	cashDeposit.CashDepositLimit = cashDepositLimit
-	if err := Validate[CashDeposit](cashDeposit); err != nil {
+	if err := validator.New().Struct(cashDeposit); err != nil {
 		return nil
 	}
 	return cashDeposit
@@ -113,7 +110,7 @@ func NewBalanceInquiry(accountId string, transaction Transaction) *BalanceInquir
 	balanceInquiry := new(BalanceInquiry)
 	balanceInquiry.Transaction = transaction
 	balanceInquiry.AccountId = accountId
-	if err := Validate[BalanceInquiry](balanceInquiry); err != nil {
+	if err := validator.New().Struct(balanceInquiry); err != nil {
 		return nil
 	}
 	return balanceInquiry
@@ -132,7 +129,7 @@ func NewTransfer(fromAccountNumber, toAccountNumber string, amount float64, tran
 	transfer.FromAccountNumber = fromAccountNumber
 	transfer.ToAccountNumber = toAccountNumber
 	transfer.Amount = amount
-	if err := Validate[Transfer](transfer); err != nil {
+	if err := validator.New().Struct(transfer); err != nil {
 		return nil
 	}
 	return transfer

@@ -18,21 +18,26 @@ const (
 )
 
 type Customer struct {
-	Name    string              `json:"name"`
-	Email   string              `json:"email"`
-	Phone   string              `json:"phone"`
-	Status  CustomerStatus      `json:"status"`
-	Address valueObject.Address `json:"address"`
-	// Card Card
-	// Account BankingAccount
+	Name            string               `json:"name"`
+	Email           string               `json:"email"`
+	Phone           string               `json:"phone"`
+	Status          CustomerStatus       `json:"status"`
+	Address         *valueObject.Address `json:"address"`
+	Card            *Card
+	CheckingAccount *CheckingAccount
+	SavingsAccount  *SavingsAccount
 }
 
-func NewCustomer(name, email, phone string) *Customer {
+func NewCustomer(name, email, phone string, address *valueObject.Address, card *Card, checkingAccount *CheckingAccount, savingsAccount *SavingsAccount) *Customer {
 	customer := new(Customer)
 	customer.Name = name
 	customer.Email = email
 	customer.Phone = phone
 	customer.Status = ACTIVE
+	customer.Address = address
+	customer.Card = card
+	customer.CheckingAccount = checkingAccount
+	customer.SavingsAccount = savingsAccount
 	if err := customer.Validate(); err != nil {
 		return nil
 	}

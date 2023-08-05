@@ -2,14 +2,6 @@ package customer
 
 import "github.com/go-playground/validator/v10"
 
-type AccountType interface {
-	account | SavingsAccount | CheckingAccount
-}
-
-func Validate[T AccountType](accountType *T) error {
-	return validator.New().Struct(accountType)
-}
-
 type account struct {
 	AccountNumber    string  `json:"account_number" validate:"required"`
 	TotalBalance     float64 `json:"total_balance" validate:"required,number"`
@@ -21,10 +13,14 @@ func NewAccount(accountNumber string, totalBalance, avaliableBalance float64) *a
 	newAccount.AccountNumber = accountNumber
 	newAccount.TotalBalance = totalBalance
 	newAccount.AvaliableBalance = avaliableBalance
-	if err := Validate[account](newAccount); err != nil {
+	if err := validator.New().Struct(newAccount); err != nil {
 		return nil
 	}
 	return newAccount
+}
+
+func (a *account) CheckBalance() float64 {
+	return a.TotalBalance
 }
 
 type SavingsAccount struct {
@@ -38,7 +34,7 @@ func NewSavingAccount(accountNumber string, totalBalance, avaliableBalance, with
 	savingsAccount.TotalBalance = totalBalance
 	savingsAccount.AvaliableBalance = avaliableBalance
 	savingsAccount.WithdrawLimit = withdrawLimit
-	if err := Validate[SavingsAccount](savingsAccount); err != nil {
+	if err := validator.New().Struct(savingsAccount); err != nil {
 		return nil
 	}
 	return savingsAccount
@@ -55,7 +51,7 @@ func NewCheckingAccount(accountNumber string, totalBalance, avaliableBalance flo
 	checkingAccount.TotalBalance = totalBalance
 	checkingAccount.AvaliableBalance = avaliableBalance
 	checkingAccount.DebitCardNumber = debitCardNumber
-	if err := Validate[CheckingAccount](checkingAccount); err != nil {
+	if err := validator.New().Struct(checkingAccount); err != nil {
 		return nil
 	}
 	return checkingAccount
