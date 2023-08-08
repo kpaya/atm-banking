@@ -1,8 +1,11 @@
 package customer
 
 import (
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	valueObject "github.com/kpaya/atm-banking/src/aggregate/value-object"
+	"gorm.io/gorm"
 )
 
 type CustomerStatus string
@@ -18,14 +21,20 @@ const (
 )
 
 type Customer struct {
-	Name            string               `json:"name"`
-	Email           string               `json:"email"`
-	Phone           string               `json:"phone"`
-	Status          CustomerStatus       `json:"status"`
-	Address         *valueObject.Address `json:"address"`
-	Card            *Card
-	CheckingAccount *CheckingAccount
-	SavingsAccount  *SavingsAccount
+	ID                string               `gorm:"primaryKey,default:gen_random_uuid()" json:"id"`
+	Name              string               `json:"name"`
+	Email             string               `json:"email"`
+	Phone             string               `json:"phone"`
+	Status            CustomerStatus       `json:"status"`
+	AddressID         string               `json:"address_id"`
+	Address           *valueObject.Address `json:"address"`
+	CheckingAccountID string               `json:"checking_account_id"`
+	CheckingAccount   *CheckingAccount
+	SavingsAccountID  string `json:"savings_account_id"`
+	SavingsAccount    *SavingsAccount
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	DeletedAt         gorm.DeletedAt `gorm:"index"`
 }
 
 func NewCustomer(name, email, phone string, address *valueObject.Address, card *Card, checkingAccount *CheckingAccount, savingsAccount *SavingsAccount) *Customer {
@@ -35,7 +44,6 @@ func NewCustomer(name, email, phone string, address *valueObject.Address, card *
 	customer.Phone = phone
 	customer.Status = ACTIVE
 	customer.Address = address
-	customer.Card = card
 	customer.CheckingAccount = checkingAccount
 	customer.SavingsAccount = savingsAccount
 	if err := customer.Validate(); err != nil {

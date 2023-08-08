@@ -6,11 +6,12 @@ import (
 )
 
 type ATM struct {
-	ID      string              `json:"id" validate:"required"`
-	Address valueObject.Address `json:"address" validate:"required"`
+	ID        string `json:"id" validate:"required" gorm:"primaryKey,default:gen_random_uuid()"`
+	AddressID string
+	Address   *valueObject.Address `json:"address" validate:"required" gorm:"foreignKey:AddressID"`
 }
 
-func NewATM(id string, address valueObject.Address) *ATM {
+func NewATM(id string, address *valueObject.Address) *ATM {
 	atm := new(ATM)
 	atm.ID = id
 	atm.Address = address

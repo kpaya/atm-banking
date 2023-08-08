@@ -5,6 +5,9 @@ import (
 	"log"
 	"os"
 
+	bankAgg "github.com/kpaya/atm-banking/src/aggregate/bank/entity"
+	customerAgg "github.com/kpaya/atm-banking/src/aggregate/customer/entity"
+	value_object "github.com/kpaya/atm-banking/src/aggregate/value-object"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -19,10 +22,10 @@ func InitializeDB() *gorm.DB {
 	}
 
 	// Migrate the schema
-	// err = db.AutoMigrate()
-	// if err != nil {
-	// 	log.Panicf("it's not possible to migrate database: %v", err.Error())
-	// }
+	err = db.AutoMigrate(&value_object.Address{}, bankAgg.ATM{}, &customerAgg.Card{}, &customerAgg.Account{}, &customerAgg.Customer{})
+	if err != nil {
+		log.Panicf("it's not possible to migrate database: %v", err.Error())
+	}
 
 	return db
 }

@@ -19,7 +19,7 @@ const (
 )
 
 type Transaction struct {
-	ID        string            `json:"id" validate:"required"`
+	ID        string            `json:"id" validate:"required" gorm:"primaryKey,default:gen_random_uuid()"`
 	Status    TransactionStatus `json:"status" validate:"required"`
 	CreatedAt time.Time         `json:"created_at"`
 }

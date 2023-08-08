@@ -1,6 +1,7 @@
 package value_object
 
 type Address struct {
+	ID      string `json:"id" gorm:"primaryKey,default:gen_random_uuid()"`
 	Street  string `json:"street"`
 	City    string `json:"city"`
 	State   string `json:"state"`

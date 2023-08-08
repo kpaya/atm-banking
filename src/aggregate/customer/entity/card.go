@@ -3,6 +3,7 @@ package customer
 import "github.com/go-playground/validator/v10"
 
 type Card struct {
+	ID              string `gorm:"primaryKey,default:gen_random_uuid()" json:"id"`
 	Number          string `json:"number"`
 	CustomerName    string `json:"customer_name"`
 	ExpirationMonth int    `json:"expiration_month"`

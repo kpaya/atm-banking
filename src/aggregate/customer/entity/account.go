@@ -2,14 +2,15 @@ package customer
 
 import "github.com/go-playground/validator/v10"
 
-type account struct {
+type Account struct {
+	ID               string  `gorm:"primaryKey,default:gen_random_uuid()" json:"id"`
 	AccountNumber    string  `json:"account_number" validate:"required"`
 	TotalBalance     float64 `json:"total_balance" validate:"required,number"`
 	AvaliableBalance float64 `json:"avaliable_balance" validate:"required,number"`
 }
 
-func NewAccount(accountNumber string, totalBalance, avaliableBalance float64) *account {
-	newAccount := new(account)
+func NewAccount(accountNumber string, totalBalance, avaliableBalance float64) *Account {
+	newAccount := new(Account)
 	newAccount.AccountNumber = accountNumber
 	newAccount.TotalBalance = totalBalance
 	newAccount.AvaliableBalance = avaliableBalance
@@ -19,12 +20,8 @@ func NewAccount(accountNumber string, totalBalance, avaliableBalance float64) *a
 	return newAccount
 }
 
-func (a *account) CheckBalance() float64 {
-	return a.TotalBalance
-}
-
 type SavingsAccount struct {
-	account
+	Account
 	WithdrawLimit float64 `json:"withdraw_limit"`
 }
 
@@ -41,7 +38,7 @@ func NewSavingAccount(accountNumber string, totalBalance, avaliableBalance, with
 }
 
 type CheckingAccount struct {
-	account
+	Account
 	DebitCardNumber string `json:"debit_card_number"`
 }
 
