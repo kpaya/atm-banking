@@ -1,4 +1,4 @@
-package entity
+package customer
 
 import (
 	"time"
@@ -10,18 +10,24 @@ import (
 type TransactionStatus string
 
 const (
-	SUCCESS TransactionStatus = "Success"
-	FAILURE TransactionStatus = "Failure"
-	BLOCKED TransactionStatus = "Blocked"
-	FULL    TransactionStatus = "Full"
-	PARTIAL TransactionStatus = "Partial"
-	NONE    TransactionStatus = "None"
+	SUCCESS     TransactionStatus = "Success"
+	FAILURE     TransactionStatus = "Failure"
+	INTERRUPTED TransactionStatus = "Interrupted"
+	FULL        TransactionStatus = "Full"
+	PARTIAL     TransactionStatus = "Partial"
+	NONE        TransactionStatus = "None"
 )
 
+type DepositType interface {
+	DepositInAccount(amount float64) error
+}
+
 type Transaction struct {
-	ID        string            `json:"id" validate:"required" gorm:"primaryKey,default:gen_random_uuid()"`
-	Status    TransactionStatus `json:"status" validate:"required"`
-	CreatedAt time.Time         `json:"created_at"`
+	ID                 string            `json:"id" validate:"required" gorm:"primaryKey,default:gen_random_uuid()"`
+	Status             TransactionStatus `json:"status" validate:"required"`
+	CreatedAt          time.Time         `json:"created_at"`
+	OriginAccount      AccountType       `json:"origin_account"`
+	DestinationAccount AccountType       `json:"destination_account"`
 }
 
 func NewTransaction(id string, status TransactionStatus, createdAt time.Time) *Transaction {
@@ -39,13 +45,13 @@ func NewTransaction(id string, status TransactionStatus, createdAt time.Time) *T
 	return transaction
 }
 
-type Withdrawal struct {
+type Withdraw struct {
 	Transaction
 	Amount float64 `json:"amount" validate:"required,number,gt=0"`
 }
 
-func NewWithdrawal(transaction Transaction, amount float64) *Withdrawal {
-	withdrawal := new(Withdrawal)
+func NewWithdrawal(transaction Transaction, amount float64) *Withdraw {
+	withdrawal := new(Withdraw)
 	withdrawal.Transaction = transaction
 	withdrawal.Amount = amount
 	if err := validator.New().Struct(withdrawal); err != nil {
@@ -54,13 +60,13 @@ func NewWithdrawal(transaction Transaction, amount float64) *Withdrawal {
 	return withdrawal
 }
 
-type deposit struct {
+type Deposit struct {
 	Transaction
 	Amount float64 `json:"amount" validate:"required,number,gt=0"`
 }
 
-func NewDeposit(transaction Transaction, amount float64) *deposit {
-	newDeposit := new(deposit)
+func NewDeposit(transaction Transaction, amount float64) *Deposit {
+	newDeposit := new(Deposit)
 	newDeposit.Transaction = transaction
 	newDeposit.Amount = amount
 	if err := validator.New().Struct(newDeposit); err != nil {
@@ -70,14 +76,14 @@ func NewDeposit(transaction Transaction, amount float64) *deposit {
 }
 
 type CheckDeposit struct {
-	deposit
+	Deposit
 	CheckNumber string `json:"check_number" validate:"required"`
 	BankCode    string `json:"bank_code" validate:"required"`
 }
 
-func NewCheckDeposit(checkNumber, bankCode string, deposit deposit) *CheckDeposit {
+func NewCheckDeposit(checkNumber, bankCode string, deposit Deposit) *CheckDeposit {
 	checkDeposit := new(CheckDeposit)
-	checkDeposit.deposit = deposit
+	checkDeposit.Deposit = deposit
 	checkDeposit.CheckNumber = checkNumber
 	checkDeposit.BankCode = bankCode
 	if err := validator.New().Struct(checkDeposit); err != nil {
@@ -86,19 +92,29 @@ func NewCheckDeposit(checkNumber, bankCode string, deposit deposit) *CheckDeposi
 	return checkDeposit
 }
 
+func (deposit *CheckDeposit) DepositInAccount(amount float64) error {
+	deposit.Transaction.DestinationAccount.AddMoney(amount)
+	return nil
+}
+
 type CashDeposit struct {
-	deposit
+	Deposit
 	CashDepositLimit float64 `json:"cash_deposit_limit" validate:"required,number,gte=0"`
 }
 
-func NewCashDeposit(cashDepositLimit float64, deposit deposit) *CashDeposit {
+func NewCashDeposit(cashDepositLimit float64, deposit Deposit) *CashDeposit {
 	cashDeposit := new(CashDeposit)
-	cashDeposit.deposit = deposit
+	cashDeposit.Deposit = deposit
 	cashDeposit.CashDepositLimit = cashDepositLimit
 	if err := validator.New().Struct(cashDeposit); err != nil {
 		return nil
 	}
 	return cashDeposit
+}
+
+func (deposit *CashDeposit) DepositInAccount(amount float64) error {
+	deposit.Transaction.DestinationAccount.AddMoney(amount)
+	return nil
 }
 
 type BalanceInquiry struct {
