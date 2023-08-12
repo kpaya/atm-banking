@@ -1,7 +1,18 @@
 package customer
 
-import "github.com/go-playground/validator/v10"
+import (
+	"github.com/go-playground/validator/v10"
+)
 
+type AccountType interface {
+	AddMoney(amount float64) error
+	WithdrawMoney(amount float64) error
+	GetAccountNumber() string
+	GetTotalBalance() float64
+	GetAvaliableBalance() float64
+}
+
+// Account Area
 type Account struct {
 	ID               string  `gorm:"primaryKey,default:gen_random_uuid()" json:"id"`
 	AccountNumber    string  `json:"account_number" validate:"required"`
@@ -20,12 +31,13 @@ func NewAccount(accountNumber string, totalBalance, avaliableBalance float64) *A
 	return newAccount
 }
 
+// SavingsAccount Area
 type SavingsAccount struct {
 	Account
 	WithdrawLimit float64 `json:"withdraw_limit"`
 }
 
-func NewSavingAccount(accountNumber string, totalBalance, avaliableBalance, withdrawLimit float64) *SavingsAccount {
+func NewSavingsAccount(accountNumber string, totalBalance, avaliableBalance, withdrawLimit float64) *SavingsAccount {
 	savingsAccount := new(SavingsAccount)
 	savingsAccount.AccountNumber = accountNumber
 	savingsAccount.TotalBalance = totalBalance
@@ -37,9 +49,34 @@ func NewSavingAccount(accountNumber string, totalBalance, avaliableBalance, with
 	return savingsAccount
 }
 
+func (account *SavingsAccount) AddMoney(amount float64) error {
+	account.TotalBalance += amount
+	return nil
+}
+
+func (account *SavingsAccount) WithdrawMoney(amount float64) error {
+	account.TotalBalance -= amount
+	return nil
+}
+
+func (account *SavingsAccount) GetAccountNumber() string {
+	return account.AccountNumber
+}
+
+func (account *SavingsAccount) GetTotalBalance() float64 {
+	return account.TotalBalance
+}
+
+func (account *SavingsAccount) GetAvaliableBalance() float64 {
+	return account.AvaliableBalance
+}
+
+// CheckingAccount Area
+
 type CheckingAccount struct {
 	Account
-	DebitCardNumber string `json:"debit_card_number"`
+	DebitCardNumber string  `json:"debit_card_number"`
+	WithdrawLimit   float64 `json:"withdraw_limit"`
 }
 
 func NewCheckingAccount(accountNumber string, totalBalance, avaliableBalance float64, debitCardNumber string) *CheckingAccount {
@@ -52,4 +89,26 @@ func NewCheckingAccount(accountNumber string, totalBalance, avaliableBalance flo
 		return nil
 	}
 	return checkingAccount
+}
+
+func (account *CheckingAccount) AddMoney(amount float64) error {
+	account.TotalBalance += amount
+	return nil
+}
+
+func (account *CheckingAccount) WithdrawMoney(amount float64) error {
+	account.TotalBalance -= amount
+	return nil
+}
+
+func (account *CheckingAccount) GetAccountNumber() string {
+	return account.AccountNumber
+}
+
+func (account *CheckingAccount) GetTotalBalance() float64 {
+	return account.TotalBalance
+}
+
+func (account *CheckingAccount) GetAvaliableBalance() float64 {
+	return account.AvaliableBalance
 }
