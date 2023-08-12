@@ -21,31 +21,28 @@ const (
 )
 
 type Customer struct {
-	ID                string               `gorm:"primaryKey,default:gen_random_uuid()" json:"id"`
-	Name              string               `json:"name"`
-	Email             string               `json:"email"`
-	Phone             string               `json:"phone"`
-	Status            CustomerStatus       `json:"status"`
-	AddressID         string               `json:"address_id"`
-	Address           *valueObject.Address `json:"address"`
-	CheckingAccountID string               `json:"checking_account_id"`
-	CheckingAccount   *CheckingAccount
-	SavingsAccountID  string `json:"savings_account_id"`
-	SavingsAccount    *SavingsAccount
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	DeletedAt         gorm.DeletedAt `gorm:"index"`
+	ID        string               `gorm:"primaryKey,default:gen_random_uuid()" json:"id"`
+	Name      string               `json:"name"`
+	Email     string               `json:"email"`
+	Phone     string               `json:"phone"`
+	Status    CustomerStatus       `json:"status"`
+	AddressID string               `json:"address_id"`
+	Address   *valueObject.Address `json:"address"`
+	AccountID string               `json:"account_id" `
+	Account   AccountType          `json:"account" gorm:"-"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func NewCustomer(name, email, phone string, address *valueObject.Address, card *Card, checkingAccount *CheckingAccount, savingsAccount *SavingsAccount) *Customer {
+func NewCustomer(name, email, phone string, address *valueObject.Address, card *Card, account AccountType) *Customer {
 	customer := new(Customer)
 	customer.Name = name
 	customer.Email = email
 	customer.Phone = phone
 	customer.Status = ACTIVE
 	customer.Address = address
-	customer.CheckingAccount = checkingAccount
-	customer.SavingsAccount = savingsAccount
+	customer.Account = account
 	if err := customer.Validate(); err != nil {
 		return nil
 	}
