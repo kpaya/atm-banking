@@ -1,6 +1,7 @@
 package customer
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -45,13 +46,13 @@ func NewTransaction(id string, status TransactionStatus, createdAt time.Time) *T
 	return transaction
 }
 
-type Withdraw struct {
+type Withdrawal struct {
 	Transaction
 	Amount float64 `json:"amount" validate:"required,number,gt=0"`
 }
 
-func NewWithdrawal(transaction Transaction, amount float64) *Withdraw {
-	withdrawal := new(Withdraw)
+func NewWithdrawal(transaction Transaction, amount float64) *Withdrawal {
+	withdrawal := new(Withdrawal)
 	withdrawal.Transaction = transaction
 	withdrawal.Amount = amount
 	if err := validator.New().Struct(withdrawal); err != nil {
@@ -93,7 +94,9 @@ func NewCheckDeposit(checkNumber, bankCode string, deposit Deposit) *CheckDeposi
 }
 
 func (deposit *CheckDeposit) DepositInAccount(amount float64) error {
-	deposit.Transaction.DestinationAccount.AddMoney(amount)
+	if err := deposit.Transaction.DestinationAccount.AddMoney(amount); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -113,8 +116,13 @@ func NewCashDeposit(cashDepositLimit float64, deposit Deposit) *CashDeposit {
 }
 
 func (deposit *CashDeposit) DepositInAccount(amount float64) error {
-	deposit.Transaction.DestinationAccount.AddMoney(amount)
-	return nil
+	if deposit.CashDepositLimit < amount {
+		if err := deposit.Transaction.DestinationAccount.AddMoney(amount); err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("you exceeded the cash deposit limit of US$%.2f", deposit.CashDepositLimit)
 }
 
 type BalanceInquiry struct {
