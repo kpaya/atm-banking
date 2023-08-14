@@ -4,7 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type AccountType interface {
+type IAccount interface {
 	AddMoney(amount float64) error
 	WithdrawMoney(amount float64) error
 	GetAccountNumber() string
@@ -20,15 +20,26 @@ type Account struct {
 	AvaliableBalance float64 `json:"avaliable_balance" validate:"required,number"`
 }
 
-func NewAccount(accountNumber string, totalBalance, avaliableBalance float64) *Account {
-	newAccount := new(Account)
-	newAccount.AccountNumber = accountNumber
-	newAccount.TotalBalance = totalBalance
-	newAccount.AvaliableBalance = avaliableBalance
-	if err := validator.New().Struct(newAccount); err != nil {
-		return nil
-	}
-	return newAccount
+func (account *Account) AddMoney(amount float64) error {
+	account.TotalBalance += amount
+	return nil
+}
+
+func (account *Account) WithdrawMoney(amount float64) error {
+	account.TotalBalance -= amount
+	return nil
+}
+
+func (account *Account) GetAccountNumber() string {
+	return account.AccountNumber
+}
+
+func (account *Account) GetTotalBalance() float64 {
+	return account.TotalBalance
+}
+
+func (account *Account) GetAvaliableBalance() float64 {
+	return account.AvaliableBalance
 }
 
 // SavingsAccount Area
@@ -37,7 +48,7 @@ type SavingsAccount struct {
 	WithdrawLimit float64 `json:"withdraw_limit"`
 }
 
-func NewSavingsAccount(accountNumber string, totalBalance, avaliableBalance, withdrawLimit float64) *SavingsAccount {
+func NewSavingsAccount(accountNumber string, totalBalance, avaliableBalance, withdrawLimit float64) IAccount {
 	savingsAccount := new(SavingsAccount)
 	savingsAccount.AccountNumber = accountNumber
 	savingsAccount.TotalBalance = totalBalance
@@ -49,28 +60,6 @@ func NewSavingsAccount(accountNumber string, totalBalance, avaliableBalance, wit
 	return savingsAccount
 }
 
-func (account *SavingsAccount) AddMoney(amount float64) error {
-	account.TotalBalance += amount
-	return nil
-}
-
-func (account *SavingsAccount) WithdrawMoney(amount float64) error {
-	account.TotalBalance -= amount
-	return nil
-}
-
-func (account *SavingsAccount) GetAccountNumber() string {
-	return account.AccountNumber
-}
-
-func (account *SavingsAccount) GetTotalBalance() float64 {
-	return account.TotalBalance
-}
-
-func (account *SavingsAccount) GetAvaliableBalance() float64 {
-	return account.AvaliableBalance
-}
-
 // CheckingAccount Area
 
 type CheckingAccount struct {
@@ -79,7 +68,7 @@ type CheckingAccount struct {
 	WithdrawLimit   float64 `json:"withdraw_limit"`
 }
 
-func NewCheckingAccount(accountNumber string, totalBalance, avaliableBalance float64, debitCardNumber string) *CheckingAccount {
+func NewCheckingAccount(accountNumber string, totalBalance, avaliableBalance float64, debitCardNumber string) IAccount {
 	checkingAccount := new(CheckingAccount)
 	checkingAccount.AccountNumber = accountNumber
 	checkingAccount.TotalBalance = totalBalance
@@ -89,26 +78,4 @@ func NewCheckingAccount(accountNumber string, totalBalance, avaliableBalance flo
 		return nil
 	}
 	return checkingAccount
-}
-
-func (account *CheckingAccount) AddMoney(amount float64) error {
-	account.TotalBalance += amount
-	return nil
-}
-
-func (account *CheckingAccount) WithdrawMoney(amount float64) error {
-	account.TotalBalance -= amount
-	return nil
-}
-
-func (account *CheckingAccount) GetAccountNumber() string {
-	return account.AccountNumber
-}
-
-func (account *CheckingAccount) GetTotalBalance() float64 {
-	return account.TotalBalance
-}
-
-func (account *CheckingAccount) GetAvaliableBalance() float64 {
-	return account.AvaliableBalance
 }

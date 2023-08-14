@@ -29,13 +29,13 @@ type Customer struct {
 	AddressID string               `json:"address_id"`
 	Address   *valueObject.Address `json:"address"`
 	AccountID string               `json:"account_id" `
-	Account   AccountType          `json:"account" gorm:"-"`
+	Account   IAccount             `json:"account" gorm:"-"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func NewCustomer(name, email, phone string, address *valueObject.Address, card *Card, account AccountType) *Customer {
+func NewCustomer(name, email, phone string, address *valueObject.Address, card *Card, account IAccount) *Customer {
 	customer := new(Customer)
 	customer.Name = name
 	customer.Email = email
