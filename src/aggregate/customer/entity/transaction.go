@@ -1,11 +1,9 @@
 package customer
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 )
 
 type TransactionStatus string
@@ -19,32 +17,26 @@ const (
 	NONE        TransactionStatus = "None"
 )
 
-type DepositType interface {
-	DepositInAccount(amount float64) error
+type ITransaction interface {
+	DefineStatus(status TransactionStatus)
+	CheckStatus() TransactionStatus
 }
 
 type Transaction struct {
-	ID                 string            `json:"id" validate:"required" gorm:"primaryKey,default:gen_random_uuid()"`
-	Status             TransactionStatus `json:"status" validate:"required"`
-	CreatedAt          time.Time         `json:"created_at"`
-	OriginAccount      IAccount          `json:"origin_account"`
-	DestinationAccount IAccount          `json:"destination_account"`
+	ID        string            `json:"id" validate:"required" gorm:"primaryKey,default:gen_random_uuid()"`
+	Status    TransactionStatus `json:"status" validate:"required"`
+	CreatedAt time.Time         `json:"created_at"`
 }
 
-func NewTransaction(id string, status TransactionStatus, createdAt time.Time) *Transaction {
-	transaction := new(Transaction)
-	if id == "" {
-		transaction.ID = uuid.NewString()
-	} else {
-		transaction.ID = id
-	}
-	transaction.Status = status
-	transaction.CreatedAt = createdAt
-	if err := validator.New().Struct(transaction); err != nil {
-		return nil
-	}
-	return transaction
+func (t *Transaction) CheckStatus() TransactionStatus {
+	return t.Status
 }
+
+func (t *Transaction) DefineStatus(status TransactionStatus) {
+	t.Status = status
+}
+
+// Withdrawal
 
 type Withdrawal struct {
 	Transaction
@@ -61,19 +53,19 @@ func NewWithdrawal(transaction Transaction, amount float64) *Withdrawal {
 	return withdrawal
 }
 
+// Deposit
+
+type IDeposit interface {
+	CheckAmmount() float64
+}
+
 type Deposit struct {
 	Transaction
 	Amount float64 `json:"amount" validate:"required,number,gt=0"`
 }
 
-func NewDeposit(transaction Transaction, amount float64) *Deposit {
-	newDeposit := new(Deposit)
-	newDeposit.Transaction = transaction
-	newDeposit.Amount = amount
-	if err := validator.New().Struct(newDeposit); err != nil {
-		return nil
-	}
-	return newDeposit
+func (d *Deposit) CheckAmmount() float64 {
+	return d.Amount
 }
 
 type CheckDeposit struct {
@@ -93,13 +85,6 @@ func NewCheckDeposit(checkNumber, bankCode string, deposit Deposit) *CheckDeposi
 	return checkDeposit
 }
 
-func (deposit *CheckDeposit) DepositInAccount(amount float64) error {
-	if err := deposit.Transaction.DestinationAccount.AddMoney(amount); err != nil {
-		return err
-	}
-	return nil
-}
-
 type CashDeposit struct {
 	Deposit
 	CashDepositLimit float64 `json:"cash_deposit_limit" validate:"required,number,gte=0"`
@@ -115,15 +100,7 @@ func NewCashDeposit(cashDepositLimit float64, deposit Deposit) *CashDeposit {
 	return cashDeposit
 }
 
-func (deposit *CashDeposit) DepositInAccount(amount float64) error {
-	if deposit.CashDepositLimit < amount {
-		if err := deposit.Transaction.DestinationAccount.AddMoney(amount); err != nil {
-			return err
-		}
-		return nil
-	}
-	return fmt.Errorf("you exceeded the cash deposit limit of US$%.2f", deposit.CashDepositLimit)
-}
+// BalanceInquiry
 
 type BalanceInquiry struct {
 	Transaction
@@ -139,6 +116,8 @@ func NewBalanceInquiry(accountId string, transaction Transaction) *BalanceInquir
 	}
 	return balanceInquiry
 }
+
+// Transfer
 
 type Transfer struct {
 	Transaction
