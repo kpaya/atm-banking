@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/joho/godotenv"
 
-	"github.com/kpaya/atm-banking/src/infra"
+	infra "github.com/kpaya/atm-banking/src/infra/database"
 	"github.com/kpaya/atm-banking/src/router"
 )
 
@@ -18,10 +17,8 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Hello World - ATM Banking Project")
-
 	// Initilize the database
-	infra.InitializeDB()
+	infra.NewDatabaseInstance()
 
 	// Initialize the router
 	router.Initialize()
