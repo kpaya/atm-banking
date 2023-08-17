@@ -5,4 +5,6 @@ type InputAccessAccountDTO struct {
 	Pin           string `json:"pin"`
 }
 
-type OutputAccessAccountDTO struct{}
+type OutputAccessAccountDTO struct {
+	Key string `json:"key"`
+}

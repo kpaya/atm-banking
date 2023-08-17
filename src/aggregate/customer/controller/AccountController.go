@@ -5,14 +5,15 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"github.com/kpaya/atm-banking/src/aggregate/customer/repository"
+	usecase "github.com/kpaya/atm-banking/src/aggregate/customer/usecase"
+	infra "github.com/kpaya/atm-banking/src/infra/database"
+
 	dto "github.com/kpaya/atm-banking/src/aggregate/customer/usecase/dto"
 )
 
 func AccessAccount(c *fiber.Ctx) error {
 	inputAccessAccountDTO := new(dto.InputAccessAccountDTO)
-
-	// create repository
-	// repository := repository.NewAccountRepository()
 
 	if err := c.BodyParser(&inputAccessAccountDTO); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -20,11 +21,18 @@ func AccessAccount(c *fiber.Ctx) error {
 		})
 	}
 
-	// create usecase
-	// usecase := usecase.NewAccessAccountUseCase(repository)
+	// create repository
+	repository := repository.NewAccountRepository(infra.NewDatabaseInstance())
 
+	// // create usecase
+	usecase := usecase.NewAccessAccountUseCase(repository)
 	// call usecase
-	// outputAccessAccountDTO, err := usecase.Execute(inputAccessAccountDTO)
+	output, err := usecase.Execute(inputAccessAccountDTO)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": fmt.Sprintf("internal error: %s", err.Error()),
+		})
+	}
 
-	return c.Status(fiber.StatusOK).JSON(inputAccessAccountDTO)
+	return c.Status(fiber.StatusOK).JSON(&output)
 }
