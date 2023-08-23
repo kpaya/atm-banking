@@ -1,3 +1,4 @@
 example.http
 .env
 tmp/
+*.db

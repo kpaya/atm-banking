@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
-
-	infra "github.com/kpaya/atm-banking/src/infra/database"
 	"github.com/kpaya/atm-banking/src/router"
+
+	db "github.com/kpaya/atm-banking/src/infra/database/sqlc"
 )
 
 func init() {
@@ -17,8 +17,9 @@ func init() {
 }
 
 func main() {
-	// Initilize the database
-	infra.NewDatabaseInstance()
+
+	// Initialize the database
+	db.InitializeDB()
 
 	// Initialize the router
 	router.Initialize()
